@@ -66,6 +66,10 @@ python evaluate_supernet.py --model <model_path> --dataset <sintel or kitti>
 
 The overall code is based on [RAFT](https://github.com/princeton-vl/RAFT) and [AttentiveNAS](https://github.com/facebookresearch/AttentiveNAS). We sincerely thank the authors for open sourcing their methods.
 
+## License
+
+The project is only free for academic research purposes, but needs authorization for commerce. For commerce permission, please contact [wyt@pku.edu.cn](mailto:wyt@pku.edu.cn).
+
 
 ## Citation
 
