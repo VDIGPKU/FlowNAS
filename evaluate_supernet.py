@@ -129,17 +129,14 @@ def validate_chairs(model, iters=24):
 
 
 @torch.no_grad()
-def validate_sintel(model, iters=32, architecture=None, is_val=False):
+def validate_sintel(model, iters=32, architecture=None, split='val'):
     """ Peform validation using the Sintel (train) split """
     print(architecture)
     model.eval()
     results = {}
     # for dstype in ['albedo','clean', 'final']:
     for dstype in ['clean', 'final']:
-        if not is_val:
-            val_dataset = datasets.MpiSintel(split='training', dstype=dstype)
-        else:
-            val_dataset = datasets.MyMpiSintel(split='validation', dstype=dstype, flownet_split=True)
+        val_dataset = datasets.MyMpiSintel(split=split, dstype=dstype, flownet_split=True)
         epe_list = []
 
         for val_id in tqdm(range(len(val_dataset))):
@@ -186,7 +183,7 @@ def validate_sintel_multi_gpu_forward(model, image1, image2, flow_gt, iters=32, 
     return epe
 
 @torch.no_grad()
-def validate_sintel_multi_gpu(model, iters=32, architecture=None, num_batch=8):
+def validate_sintel_multi_gpu(model, iters=32, architecture=None, num_batch=8, split='val'):
     """ Peform validation using the Sintel (train) split """
     print(architecture)
     model.eval()
@@ -194,9 +191,8 @@ def validate_sintel_multi_gpu(model, iters=32, architecture=None, num_batch=8):
     # for dstype in ['clean', 'final']:
     count = 0
     # max_count = 10
-    for dstype in ['clean']:
-        # val_dataset = datasets.MpiSintel(split='training', dstype=dstype)
-        val_dataset = datasets.MyMpiSintel(split='validation', dstype=dstype)
+    for dstype in ['clean', 'final']:
+        val_dataset = datasets.MyMpiSintel(split=split, dstype=dstype, flownet_split=True)
 
         # print(len(val_dataset))
         epe_list = []
@@ -232,11 +228,10 @@ def validate_sintel_multi_gpu(model, iters=32, architecture=None, num_batch=8):
     return results
 
 @torch.no_grad()
-def validate_kitti(model, iters=24):
+def validate_kitti(model, iters=24, split='val'):
     """ Peform validation using the KITTI-2015 (train) split """
     model.eval()
-    val_dataset = datasets.KITTI(split='training')
-    # val_dataset = datasets.MyKITTI(split='validation')
+    val_dataset = datasets.MyKITTI(split=split)
 
     out_list, epe_list = [], []
     for val_id in tqdm(range(len(val_dataset))):
@@ -280,6 +275,7 @@ if __name__ == '__main__':
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
     parser.add_argument('--image_size', type=int, nargs='+', default=[384, 512])
     parser.add_argument('--gpus', type=int, nargs='+', default=[0])
+    parser.add_argument('--split', type=str, default='val')
     args = parser.parse_args()
 
 
@@ -315,11 +311,11 @@ if __name__ == '__main__':
             validate_chairs(model.module)
 
         elif args.dataset == 'sintel':
-            validate_sintel(model.module)
+            # validate_sintel(model.module, split=args.split)
             create_sintel_submission(model.module)
 
         elif args.dataset == 'kitti':
-            validate_kitti(model.module)
+            # validate_kitti(model.module, split=args.split)
             create_kitti_submission(model.module)
 
 

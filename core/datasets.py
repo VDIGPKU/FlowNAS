@@ -140,10 +140,12 @@ class MpiSintel(FlowDataset):
 
 class MyMpiSintel(MpiSintel):
     def __init__(self, aug_params=None, split='training', root='datasets/Sintel', dstype='clean', flownet_split=False):
-        super(MyMpiSintel, self).__init__(aug_params, split, root, dstype)
+        super(MyMpiSintel, self).__init__(aug_params, 'training', root, dstype)
         assert split != 'test'
 
-        if split == 'validation':
+        assert split in ['train', 'val', 'trainval']
+
+        if split == 'val':
             # index = np.loadtxt('sintel_val.txt', dtype=np.int32)
             if flownet_split:
                 sintel_split = np.loadtxt('sintel_split.txt', dtype=np.int32)
@@ -154,7 +156,7 @@ class MyMpiSintel(MpiSintel):
 
             # print('sintel val set')
             print('sintel val set {}/{}'.format(len(index), len(self.flow_list)))
-        else:
+        elif split == 'train':
             # index = np.loadtxt('sintel_train.txt', dtype=np.int32)
             if flownet_split:
                 sintel_split = np.loadtxt('sintel_split.txt', dtype=np.int32)
@@ -165,6 +167,12 @@ class MyMpiSintel(MpiSintel):
 
             # print('sintel train set')
             print('sintel train set {}/{}'.format(len(index), len(self.flow_list)))
+        elif split == 'trainval':
+            index = [i for i in range(len(self.flow_list))]
+
+            # print('sintel train set')
+            print('sintel trainval set {}/{}'.format(len(index), len(self.flow_list)))
+
 
         self.flow_list = [self.flow_list[i] for i in index]
         self.image_list = [self.image_list[i] for i in index]
@@ -240,17 +248,20 @@ class KITTI(FlowDataset):
 
 class MyKITTI(KITTI):
     def __init__(self, aug_params=None, split='training', root='datasets/KITTI'):
-        super(MyKITTI, self).__init__(aug_params, split, root)
+        super(MyKITTI, self).__init__(aug_params, 'training', root)
         assert split != 'test'
 
-        if split == 'validation':
+        if split == 'val':
             # index = np.loadtxt('kitti_val.txt', dtype=np.int32)
             index = [i for i in range(len(self.flow_list)) if i % 5 == 0]
             print('kitti val set {}/{}'.format(len(index), len(self.flow_list)))
-        else:
+        elif split == 'train':
             # index = np.loadtxt('kitti_train.txt', dtype=np.int32)
             index = [i for i in range(len(self.flow_list)) if i % 5 != 0]
             print('kitti train set {}/{}'.format(len(index), len(self.flow_list)))
+        elif split == 'trainval':
+            index = [i for i in range(len(self.flow_list))]
+            print('kitti trainval set {}/{}'.format(len(index), len(self.flow_list)))
 
         self.flow_list = [self.flow_list[i] for i in index]
         self.image_list = [self.image_list[i] for i in index]
@@ -326,7 +337,7 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
     return train_loader
 
 
-def my_fetch_dataloader(args, TRAIN_DS='C+T+K+S+H', flownet_split=False):
+def my_fetch_dataloader(args, TRAIN_DS='C+T+K+S+H', flownet_split=True, split='train'):
     """ Create the data loader for the corresponding trainign set """
 
     if args.stage == 'chairs':
@@ -342,10 +353,10 @@ def my_fetch_dataloader(args, TRAIN_DS='C+T+K+S+H', flownet_split=False):
     elif args.stage == 'sintel':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.6, 'do_flip': True}
         things = FlyingThings3D(aug_params, dstype='frames_cleanpass')
-        sintel_clean = MyMpiSintel(aug_params, split='training', dstype='clean', flownet_split=flownet_split)
-        sintel_final = MyMpiSintel(aug_params, split='training', dstype='final', flownet_split=flownet_split)
+        sintel_clean = MyMpiSintel(aug_params, split=split, dstype='clean', flownet_split=flownet_split)
+        sintel_final = MyMpiSintel(aug_params, split=split, dstype='final', flownet_split=flownet_split)
         if TRAIN_DS == 'C+T+K+S+H':
-            kitti = MyKITTI({'crop_size': args.image_size, 'min_scale': -0.3, 'max_scale': 0.5, 'do_flip': True})
+            kitti = MyKITTI({'crop_size': args.image_size, 'min_scale': -0.3, 'max_scale': 0.5, 'do_flip': True}, split=split)
             hd1k = HD1K({'crop_size': args.image_size, 'min_scale': -0.5, 'max_scale': 0.2, 'do_flip': True})
             train_dataset = 100 * sintel_clean + 100 * sintel_final + 200 * kitti + 5 * hd1k + things
 
@@ -353,8 +364,8 @@ def my_fetch_dataloader(args, TRAIN_DS='C+T+K+S+H', flownet_split=False):
             train_dataset = 100 * sintel_clean + 100 * sintel_final + things
 
     elif args.stage == 'kitti':
-        aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
-        train_dataset = MyKITTI(aug_params, split='training')
+        aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': True, 'v_flip_prob':0.0}
+        train_dataset = MyKITTI(aug_params, split=split)
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size,
                                    pin_memory=False, shuffle=True, num_workers=4, drop_last=True)
