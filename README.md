@@ -76,10 +76,17 @@ The project is only free for academic research purposes, but needs authorization
 If FlowNAS is useful or relevant to your research, please cite our paper:
 
 ```bibtex
-@article{lin2022flownas,
+@article{Lin2023,
   title={FlowNAS: Neural Architecture Search for Optical Flow Estimation},
-  author={Zhiwei Lin, Tingting Liang, Taihong Xiao, Yongtao Wang, Zhi Tang, Ming-Hsuan Yang},
-  journal={arXiv preprint arXiv:2207.01271},
-  year={2022}
+  author={Lin, Zhiwei and Liang, Tingting and Xiao, Taihong and Wang, Yongtao and Yang, Ming-Hsuan},
+  journal={International Journal of Computer Vision},
+  year={2023},
+  month={Oct},
+  day={25},
+  issn={1573-1405},
+  doi={10.1007/s11263-023-01920-9},
+  url={https://doi.org/10.1007/s11263-023-01920-9}
 }
+
+
 ```
